@@ -311,7 +311,7 @@ int Sfw::send(const uint8_t* payload, uint8_t pLen, SensorNetAddress* addr){
 SerialPort::SerialPort()
 {
 	_tio.c_iflag = IGNBRK | IGNPAR;
-	_tio.c_cflag = CS8 | CLOCAL | CRTSCTS | CREAD;
+	_tio.c_cflag = CS8 | CLOCAL | CREAD;
 	_tio.c_cc[VINTR] = 0;
 	_tio.c_cc[VTIME] = 10;   // 1 sec.
 	_tio.c_cc[VMIN] = 1;

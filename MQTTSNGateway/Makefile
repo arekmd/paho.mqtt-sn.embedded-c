@@ -74,7 +74,7 @@ DEFS :=
 LIB :=
 LIBS += $(LIB) -L/usr/local/lib
 LDFLAGS := 
-CXXFLAGS := -Wall -O3 -std=c++11
+CXXFLAGS := -Wall -O2 -std=c++11
 LDADD := -lpthread -lssl -lcrypto -lrt
 OUTDIR := Build
 
@@ -106,7 +106,6 @@ $(LPROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(LAPPL).o
 
 $(TPROG): $(OBJS) $(OUTDIR)/$(SRCDIR)/$(TEST)/$(TESTAPPL).o
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS) $(LDADD)
-
 
 $(OUTDIR)/$(SRCDIR)/%.o:$(SRCDIR)/%.cpp
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
