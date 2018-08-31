@@ -49,7 +49,6 @@ public:
 
 private:
 	int _fd;  // file descriptor
-	struct termios _tio;
 };
 
 /*===========================================

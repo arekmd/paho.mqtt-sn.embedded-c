@@ -310,11 +310,11 @@ int Sfw::send(const uint8_t* payload, uint8_t pLen, SensorNetAddress* addr){
  =========================================*/
 SerialPort::SerialPort()
 {
-	_tio.c_iflag = IGNBRK | IGNPAR;
-	_tio.c_cflag = CS8 | CLOCAL | CREAD;
-	_tio.c_cc[VINTR] = 0;
-	_tio.c_cc[VTIME] = 10;   // 1 sec.
-	_tio.c_cc[VMIN] = 1;
+	//_tio.c_iflag = IGNBRK | IGNPAR;
+	//_tio.c_cflag = CS8 | CLOCAL | CREAD;
+	//_tio.c_cc[VINTR] = 0;
+	//_tio.c_cc[VTIME] = 10;   // 1 sec.
+	//_tio.c_cc[VMIN] = 1;
 	_fd = 0;
 }
 
@@ -335,20 +335,41 @@ int SerialPort::open(char* devName, unsigned int baudrate, bool parity,
 		return _fd;
 	}
 
-	if (parity)
-	{
-		_tio.c_cflag = _tio.c_cflag | PARENB;
-	}
-	if (stopbit == 2)
-	{
-		_tio.c_cflag = _tio.c_cflag | CSTOPB;
-	}
 
-	if (cfsetspeed(&_tio, baudrate) < 0)
-	{
-		return errno;
-	}
-	return tcsetattr(_fd, TCSANOW, &_tio);
+    struct termios t;
+
+    bzero(&t, sizeof(t));
+
+    if (tcgetattr(_fd, &t) < 0){
+        return -1;
+    }
+    
+
+    t.c_cflag = (t.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
+    // disable IGNBRK for mismatched speed tests; otherwise receive break
+    // as \000 chars
+    t.c_iflag &= ~IGNBRK;         // disable break processing
+    t.c_lflag = 0;                // no signaling chars, no echo,
+                                        // no canonical processing
+    t.c_oflag = 0;                // no remapping, no delays
+    t.c_cc[VMIN]  = 0;            // read doesn't block
+    t.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
+
+    t.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
+
+    t.c_cflag |= (CLOCAL | CREAD);// ignore modem controls,
+                                        // enable reading
+    t.c_cflag &= ~(PARENB | PARODD);      // shut off parity
+    t.c_cflag |= parity;
+    t.c_cflag &= ~CSTOPB;
+    t.c_cflag &= ~CRTSCTS;
+
+    cfsetispeed(&t, baudrate);
+    cfsetospeed(&t, baudrate);
+
+    cfmakeraw(&t);
+
+	return tcsetattr(_fd, TCSANOW, &t);
 }
 
 bool SerialPort::send(unsigned char b)
@@ -385,6 +406,10 @@ bool SerialPort::recv(unsigned char* buf)
 
 void SerialPort::flush(void)
 {
-	tcsetattr(_fd, TCSAFLUSH, &_tio);
+    struct termios t;
+    bzero(&t, sizeof(t));
+    tcgetattr(_fd, &t); 
+
+	tcsetattr(_fd, TCSAFLUSH, &t);
 }
 
