@@ -260,8 +260,8 @@ int Sfw::recv(uint8_t* buf, uint16_t bufLen, SensorNetAddress* clientAddr)
         if (_serialPort->recv(iterator++) != 1)
             return 0;
             
-        mqtt_frame_len = buf[2] << 8;
-        mqtt_frame_len |= buf[3];
+        mqtt_frame_len = buf[1] << 8;
+        mqtt_frame_len |= buf[2];
 
     } else {
         // Single octet length
